@@ -42,9 +42,9 @@ class Hesabe {
   late String failureUrl;
 
   Future<void> openCheckout(
-    BuildContext context, {
-    required Map<String, dynamic> paymentRequestObject,
-  }) async {
+      BuildContext context, {
+        required Map<String, dynamic> paymentRequestObject,
+      }) async {
     responseUrl = paymentRequestObject['responseUrl'];
     failureUrl = paymentRequestObject['failureUrl'];
     final request = json.encode(paymentRequestObject);
@@ -53,9 +53,9 @@ class Hesabe {
   }
 
   Future<void> checkOutRequest(
-    String encryptedData,
-    BuildContext context,
-  ) async {
+      String encryptedData,
+      BuildContext context,
+      ) async {
     final Dio dio = DioHelper.getDio(baseUrl);
     try {
       final response = await ApiInterface(dio).hesabePay(
@@ -73,7 +73,7 @@ class Hesabe {
     /* Decrypt Response */
     final decryptedResponse = HesabeCrypt().decrypt(response, secretKey, ivKey);
     final trimmedData =
-        decryptedResponse.replaceAll(_trimmingRegExp, '').trim();
+    decryptedResponse.replaceAll(_trimmingRegExp, '').trim();
     /* Get token from decrypted response */
     final responseToken = json.decode(trimmedData)['response']['data'];
     /* Create payment URL with response token */
