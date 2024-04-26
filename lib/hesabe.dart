@@ -2,6 +2,9 @@ library hesabe;
 
 import 'dart:convert';
 import 'dart:developer';
+import 'package:flutter/foundation.dart';
+import 'package:hesabe/src/web_result.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:dio/dio.dart';
 import 'package:eventify/eventify.dart';
@@ -42,9 +45,9 @@ class Hesabe {
   late String failureUrl;
 
   Future<void> openCheckout(
-      BuildContext context, {
-        required Map<String, dynamic> paymentRequestObject,
-      }) async {
+    BuildContext context, {
+    required Map<String, dynamic> paymentRequestObject,
+  }) async {
     responseUrl = paymentRequestObject['responseUrl'];
     failureUrl = paymentRequestObject['failureUrl'];
     final request = json.encode(paymentRequestObject);
@@ -53,9 +56,9 @@ class Hesabe {
   }
 
   Future<void> checkOutRequest(
-      String encryptedData,
-      BuildContext context,
-      ) async {
+    String encryptedData,
+    BuildContext context,
+  ) async {
     final Dio dio = DioHelper.getDio(baseUrl);
     try {
       final response = await ApiInterface(dio).hesabePay(
@@ -73,24 +76,32 @@ class Hesabe {
     /* Decrypt Response */
     final decryptedResponse = HesabeCrypt().decrypt(response, secretKey, ivKey);
     final trimmedData =
-    decryptedResponse.replaceAll(_trimmingRegExp, '').trim();
+        decryptedResponse.replaceAll(_trimmingRegExp, '').trim();
     /* Get token from decrypted response */
     final responseToken = json.decode(trimmedData)['response']['data'];
     /* Create payment URL with response token */
     final paymentURL = '$baseUrl/payment?data=$responseToken';
 
-    /* Open WebView Activity to load the URL */
-    final data = await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => WebviewScreen(
-          paymentURL: paymentURL,
-          responseUrl: responseUrl,
-          failureUrl: failureUrl,
-        ),
-      ),
-    );
-
     String eventName;
+    final data = kIsWeb
+        ? await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => WebScreenResult(
+                paymentURL: paymentURL,
+                responseUrl: responseUrl,
+                failureUrl: failureUrl,
+              ),
+            ),
+          )
+        : Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => WebviewScreen(
+                paymentURL: paymentURL,
+                responseUrl: responseUrl,
+                failureUrl: failureUrl,
+              ),
+            ),
+          );
 
     if (data == EVENT_PAYMENT_CANCELLED_BY_USER) {
       eventName = EVENT_PAYMENT_ERROR;

@@ -243,6 +243,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Center(
               child: TextButton(
                 onPressed: () {
+                  print(_getPaymentRequestObject());
                   setState(() {
                     showLoader = true;
                   });
